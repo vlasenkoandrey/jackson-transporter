@@ -1,0 +1,26 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+group = 'json-transporter'
+version = '0.0.1-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.java
+}
+
+dependencies {
+    compile 'com.fasterxml.jackson.core:jackson-databind:3.0.0-SNAPSHOT'
+    compile 'net.bytebuddy:byte-buddy:1.9.10'
+    testCompile 'junit:junit:4.12'
+}
