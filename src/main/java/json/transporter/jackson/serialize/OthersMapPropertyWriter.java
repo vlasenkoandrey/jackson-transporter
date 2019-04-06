@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 
-import static json.transporter.jackson.OthersFieldUtils.getOthersMap;
+import static json.transporter.jackson.OthersFieldInstrumentation.getOthersMap;
 
 public class OthersMapPropertyWriter extends BeanPropertyWriter {
     public OthersMapPropertyWriter(BeanPropertyWriter beanPropertyWriter) {

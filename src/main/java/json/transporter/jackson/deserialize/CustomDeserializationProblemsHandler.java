@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
 
-import static json.transporter.jackson.OthersFieldUtils.getOthersMap;
+import static json.transporter.jackson.OthersFieldInstrumentation.getOthersMap;
 
 public class CustomDeserializationProblemsHandler extends DeserializationProblemHandler {
     @Override

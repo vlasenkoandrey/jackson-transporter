@@ -1,9 +1,6 @@
 package json.transporter.jackson.deserialize;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -12,17 +9,11 @@ import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
 import com.fasterxml.jackson.databind.deser.ValueInstantiator;
 import com.fasterxml.jackson.databind.deser.impl.PropertyValueBuffer;
 import com.fasterxml.jackson.databind.introspect.AnnotatedWithParams;
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.description.modifier.Visibility;
-import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy.Default;
 
-import static java.util.Arrays.stream;
-import static json.transporter.jackson.OthersFieldUtils.OTHERS_FIELD_NAME;
+import static json.transporter.jackson.OthersFieldInstrumentation.getGeneratedClass;
+import static json.transporter.jackson.OthersFieldInstrumentation.getWithArgsConstructor;
 
 public class EnhancedBeanInstantiator extends ValueInstantiator {
-    private static final Map<Class<?>, Class<?>> enhancedClasses = new ConcurrentHashMap<>();
-    private static final Map<Class<?>, Constructor> withArgsConstructors = new ConcurrentHashMap<>();
-
     private final ValueInstantiator decoratedInstantiator;
 
     public EnhancedBeanInstantiator(ValueInstantiator decoratedInstantiator) {
@@ -107,14 +98,13 @@ public class EnhancedBeanInstantiator extends ValueInstantiator {
 
     @Override
     public Object createUsingDefault(DeserializationContext ctxt) {
-        final Class<?> enhancedClass = getGeneratedClass();
+        final Class<?> enhancedClass = getGeneratedClass(decoratedInstantiator.getValueClass());
         try {
             return enhancedClass.getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Cannot instantiate bean, `" + decoratedInstantiator.getValueClass() +
                     "`, it must have public default constructor", e);
         }
-
     }
 
     @Override
@@ -123,13 +113,21 @@ public class EnhancedBeanInstantiator extends ValueInstantiator {
     }
 
     @Override
-    public Object createFromObjectWith(DeserializationContext ctxt, SettableBeanProperty[] props, PropertyValueBuffer buffer) throws IOException {
-        final Constructor<?> constructor = getWithArgsConstructor(props);
-        try {
-            return constructor.newInstance(buffer.getParameters(props));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public Object createFromObjectWith(DeserializationContext ctxt, SettableBeanProperty[] props, PropertyValueBuffer buffer) {
+        return getWithArgsConstructor(decoratedInstantiator.getValueClass(), props)
+            .map(constructor -> {
+                try {
+                    return (Object)constructor.newInstance(buffer.getParameters(props));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).orElseGet(() -> {
+                try {
+                    return decoratedInstantiator.createFromObjectWith(ctxt, props, buffer);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
     @Override
@@ -185,27 +183,5 @@ public class EnhancedBeanInstantiator extends ValueInstantiator {
     @Override
     public AnnotatedWithParams getWithArgsCreator() {
         return decoratedInstantiator.getWithArgsCreator();
-    }
-
-    protected Constructor<?> getWithArgsConstructor(final SettableBeanProperty[] props) {
-        return withArgsConstructors.computeIfAbsent(getGeneratedClass(), clazz -> {
-            try {
-                return clazz.getConstructor(stream(props)
-                        .map(p -> p.getType().getRawClass()).toArray(size -> new Class[props.length]));
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    protected Class<?> getGeneratedClass() {
-        return enhancedClasses.computeIfAbsent(decoratedInstantiator.getValueClass(), toEnhance ->
-            new ByteBuddy()
-                .subclass(toEnhance, Default.IMITATE_SUPER_CLASS)
-                .defineField(OTHERS_FIELD_NAME, Map.class, Visibility.PRIVATE)
-                .make()
-                .load(toEnhance.getClassLoader())
-                .getLoaded()
-        );
     }
 }

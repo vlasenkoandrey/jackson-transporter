@@ -2,9 +2,7 @@ package json.transporter.jackson;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import json.transporter.jackson.builder.JsonTransporterMapper;
 import json.transporter.jackson.model.A;
 import json.transporter.jackson.model.ComplexA;
 import json.transporter.jackson.model.FinalA;

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
-import static json.transporter.jackson.OthersFieldUtils.OTHERS_FIELD_NAME;
+import static json.transporter.jackson.OthersFieldInstrumentation.OTHERS_FIELD_NAME;
 
 public class WithOthersSerializerModifier extends BeanSerializerModifier {
     @Override

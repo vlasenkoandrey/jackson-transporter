@@ -1,4 +1,4 @@
-package json.transporter.jackson.builder;
+package json.transporter.jackson;
 
 import com.fasterxml.jackson.databind.cfg.DeserializerFactoryConfig;
 import com.fasterxml.jackson.databind.json.JsonMapper;
