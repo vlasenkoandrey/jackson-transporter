@@ -8,8 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.cfg.DeserializerFactoryConfig;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerFactory;
-import com.fasterxml.jackson.databind.deser.ValueInstantiator;
+import com.fasterxml.jackson.databind.deser.*;
 
 public class WithPatchedInstantiatorDeserializerFactory extends BeanDeserializerFactory {
     private final Map<JavaType, ValueInstantiator> valueInstantiators = new ConcurrentHashMap<>();
@@ -27,5 +26,17 @@ public class WithPatchedInstantiatorDeserializerFactory extends BeanDeserializer
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    @Override
+    public DeserializerFactory withConfig(DeserializerFactoryConfig config) {
+        DeserializerFactoryConfig tmp = _factoryConfig;
+        for (KeyDeserializers keyDeserializers : config.keyDeserializers()) {
+            tmp = tmp.withAdditionalKeyDeserializers(keyDeserializers);
+        }
+        for (Deserializers deserializers : config.deserializers()) {
+            tmp = tmp.withAdditionalDeserializers(deserializers);
+        }
+        return new WithPatchedInstantiatorDeserializerFactory(tmp);
     }
 }
