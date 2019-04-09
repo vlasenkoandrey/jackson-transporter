@@ -14,7 +14,6 @@ public class CustomDeserializationProblemsHandler extends DeserializationProblem
     @Override
     public boolean handleUnknownProperty(DeserializationContext ctxt, JsonParser p, JsonDeserializer<?> deserializer,
             Object beanOrClass, String propertyName) throws IOException {
-        String text = p.getText();
         TreeNode n = p.readValueAsTree();
         getOthersMap(beanOrClass).ifPresent(others -> {
             try {
