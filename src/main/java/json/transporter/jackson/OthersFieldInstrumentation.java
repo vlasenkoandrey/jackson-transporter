@@ -70,8 +70,12 @@ public class OthersFieldInstrumentation {
     public static <T> Optional<Constructor<?>> getWithArgsConstructor(final Class<T> valueClass, final SettableBeanProperty[] props) {
         return withArgsConstructors.computeIfAbsent(getGeneratedClass(valueClass), clazz -> {
             try {
-                return Optional.of(clazz.getConstructor(stream(props)
-                        .map(p -> p.getType().getRawClass()).toArray(size -> new Class[props.length])));
+                return Optional.of(clazz.getDeclaredConstructor(stream(props)
+                        .map(p -> p.getType().getRawClass()).toArray(size -> new Class[props.length])))
+                        .map(constructor -> {
+                            constructor.setAccessible(true);
+                            return constructor;
+                        });
             } catch (NoSuchMethodException e) {
                 return empty();
             }
