@@ -24,3 +24,28 @@ dependencies {
     compile 'net.bytebuddy:byte-buddy:1.9.10'
     testCompile 'junit:junit:4.12'
 }
+
+apply plugin: 'maven-publish'
+publishing {
+
+    publications {
+        maven(MavenPublication) {
+            groupId = 'json-transporter'
+            artifactId = 'json-transporter'
+            version = '0.0.1-SNAPSHOT'
+
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            
+            url "http://artifactory.push.tools.roku.com/artifactory/sr-lib-snapshot-local"
+            credentials {
+                username = ${artifactory_user}
+                password = password = "${artifactory_password}"
+            }
+        }
+    }
+}
